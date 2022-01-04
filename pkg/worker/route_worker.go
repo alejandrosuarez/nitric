@@ -72,30 +72,31 @@ func (s *RouteWorker) resolveTicket(ID string) (chan *pb.TriggerResponse, error)
 	return s.responseQueue[ID], nil
 }
 
-func (s *RouteWorker) HandlesHttpRequest(trigger *triggers.HttpRequest) bool {
-
-	for _, m := range s.methods {
-		if strings.ToLower(m) != strings.ToLower(trigger.Method) {
-			return false
-		}
-	}
-	// Add path and method matching
-
+func (s *RouteWorker) extractPathParams(trigger *triggers.HttpRequest) (map[string]string, error) {
 	requestPathSegments := utils.SplitPath(trigger.Path)
 	pathSegments := utils.SplitPath(s.path)
+	params := make(map[string]string)
 
 	// TODO: Filter for trailing/leading slashes
 	if len(requestPathSegments) != len(pathSegments) {
-		return false
+		return nil, fmt.Errorf("path template mismatch")
 	}
 
 	for i, p := range pathSegments {
 		if !strings.HasPrefix(p, ":") && p != requestPathSegments[i] {
-			return false
+			return nil, fmt.Errorf("path template mismatch")
+		} else if strings.HasPrefix(p, ":") {
+			params[strings.Replace(p, ":", "", 1)] = requestPathSegments[i]
 		}
 	}
 
-	return true
+	return params, nil
+}
+
+func (s *RouteWorker) HandlesHttpRequest(trigger *triggers.HttpRequest) bool {
+	_, err := s.extractPathParams(trigger)
+
+	return err == nil
 }
 
 func (s *RouteWorker) HandlesEvent(trigger *triggers.Event) bool {
@@ -141,6 +142,12 @@ func (s *RouteWorker) HandleHttpRequest(trigger *triggers.HttpRequest) (*trigger
 		}
 	}
 
+	params, err := s.extractPathParams(trigger)
+
+	if err != nil {
+		return nil, err
+	}
+
 	triggerRequest := &pb.TriggerRequest{
 		Data:     trigger.Body,
 		MimeType: mimeType,
@@ -152,6 +159,7 @@ func (s *RouteWorker) HandleHttpRequest(trigger *triggers.HttpRequest) (*trigger
 				QueryParamsOld: queryOld,
 				Headers:        headers,
 				HeadersOld:     headersOld,
+				PathParams:     params,
 			},
 		},
 	}
@@ -165,7 +173,7 @@ func (s *RouteWorker) HandleHttpRequest(trigger *triggers.HttpRequest) (*trigger
 	}
 
 	// send the message
-	err := s.stream.Send(message)
+	err = s.stream.Send(message)
 
 	if err != nil {
 		// There was an error enqueuing the message
