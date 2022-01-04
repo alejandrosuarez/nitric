@@ -92,15 +92,15 @@ type Function struct {
 
 func (a *Function) String() string {
 	return fmt.Sprintf(`
-	  apis: %+v,
-	  subscriptions: %+v,
-		schedules: %+v,
-		buckets: %+v,
-		topics: %+v,
-		collections: %+v,
-		queues: %+v,
-		policies: %+v,
-	`, a.apis, a.subscriptions, a.schedules, a.buckets, a.topics, a.queues, a.collections, a.policies)
+apis: %+v,
+subscriptions: %+v,
+schedules: %+v,
+buckets: %+v,
+topics: %+v,
+collections: %+v,
+queues: %+v,
+policies: %+v,
+	`, a.apis, a.subscriptions, a.schedules, a.buckets, a.topics, a.collections, a.queues, a.policies)
 }
 
 // AddPolicy - Adds an access policy dependency to the function
