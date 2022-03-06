@@ -54,6 +54,7 @@ message ResourceDeclareRequest {
     TopicResource topic = 13;
     CollectionResource collection = 14;
     SecretResource secret = 15;
+    ApiResource api = 16;
   }
 }
 
@@ -62,6 +63,35 @@ message QueueResource {}
 message TopicResource {}
 message CollectionResource {}
 message SecretResource {}
+
+message JwtSigningConfig {
+  oneof config {
+    // location of the public key
+    // for assymetrically signed JWTs
+    string jwks_uri = 1;
+  }
+}
+
+// protect your API with JWT authentication
+message ApiSecurityDefinitionJwt {
+  JwtSigningConfig signing_config = 1;
+  repeated string audiences = 2;
+  string issuer = 3;
+}
+
+message ApiSecurityDefinition {
+  oneof definition {
+    ApiSecurityDefinitionJwt jwt = 1;
+    // Example of how we might allow additional security configuration
+    // ApiSecurityDefinitionKey key = 2;
+  } 
+}
+
+message ApiResource {
+  // Security definitions for the api
+  // These may be used by registered routes and operations on the API
+  map<string, ApiSecurityDefinition> security_definitions = 1;
+}
 
 enum Action {
   // Bucket Permissions: 0XX
