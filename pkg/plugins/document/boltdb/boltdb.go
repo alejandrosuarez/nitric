@@ -41,6 +41,8 @@ const idName = "Id"
 const partitionKeyName = "PartitionKey"
 const sortKeyName = "SortKey"
 
+const collectionSeparator = "/"
+
 type BoltDocService struct {
 	document.UnimplementedDocumentPlugin
 	dbDir string
@@ -462,7 +464,7 @@ func createDoc(key *document.Key) BoltDoc {
 		}
 	} else {
 		return BoltDoc{
-			Id:           parentKey.Id + "_" + key.Id,
+			Id:           parentKey.Id + collectionSeparator + key.Id,
 			PartitionKey: parentKey.Id,
 			SortKey:      key.Collection.Name + "#" + key.Id,
 		}
@@ -470,7 +472,7 @@ func createDoc(key *document.Key) BoltDoc {
 }
 
 func toSdkDoc(col *document.Collection, doc BoltDoc) *document.Document {
-	keys := strings.Split(doc.Id, "_")
+	keys := strings.Split(doc.Id, collectionSeparator)
 
 	// Translate the boltdb Id into a nitric document key Id
 	var id string
