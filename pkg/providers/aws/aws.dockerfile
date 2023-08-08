@@ -31,7 +31,7 @@ COPY . .
 RUN make aws-static
 
 # Build the default development membrane server
-FROM alpine
+FROM alpine:3.18.3
 # FIXME: Build these in a build stage during the docker build
 # for now will just be copied post local build
 # and execute these stages through a local shell script
