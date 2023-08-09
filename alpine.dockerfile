@@ -34,7 +34,7 @@ COPY . .
 
 RUN make
 
-FROM alpine
+FROM alpine:3.18.3
 
 COPY --from=build /bin/membrane /membrane
 RUN chmod +xr /membrane
